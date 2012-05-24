@@ -1,0 +1,24 @@
+module RMTConfig
+  module Redmine
+    BaseUrl = "https://projects.puppetlabs.com/"
+    Username = "user@puppetlabs.com"
+    Password = "password"
+    ProjectId = 82
+
+    # legal values are [green yellow orange red purple blue]
+    TrackerToTrelloLabelColorMap = {
+        "Feature" => "green",
+        "Bug" => "red",
+        "Refactor" => "blue",
+    }
+  end
+
+  module Trello
+    AppKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    Secret = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+    UserToken = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+    TargetListId = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  end
+end
