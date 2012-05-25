@@ -64,6 +64,7 @@ class RedmineToTrello
   end
 
   def main()
+    puts "Beginning run (#{Time.new})"
 
     redmine_client = RedmineClient.new(RMTConfig::Redmine::BaseUrl,
                                        RMTConfig::Redmine::Username,
@@ -94,6 +95,7 @@ class RedmineToTrello
 
     save_last_run_info(new_max_ticket_id)
 
+    puts ""
   end
 end
 
