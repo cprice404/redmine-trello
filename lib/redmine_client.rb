@@ -17,7 +17,7 @@ class RedmineClient
     @base_url = base_url.sub(/\/$/, "")
     @conn = Faraday.new
 
-    if (@username and @password)
+    if (username and password)
       @conn.basic_auth(username, password)
     end
   end
