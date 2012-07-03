@@ -34,12 +34,16 @@ class RedmineToTrello
   def add_issue_to_trello(issue)
     card = Trello::Card.create(:name => "(#{issue[:id]}) #{issue[:subject]}",
                         :list_id => RMTConfig::Trello::TargetListId,
-                        :description => issue[:description])
+                        :description => sanitize_utf8(issue[:description]))
     color = RMTConfig::Redmine::TrackerToTrelloLabelColorMap[issue[:tracker]]
     if color
       card.add_label(color)
     end
   end
+
+	def sanitize_utf8(str)
+	  str.each_char.map { |c| c.valid_encoding? ? c : "\ufffd"}.join
+	end
 
   def get_last_run_info()
 
