@@ -1,36 +1,36 @@
-module RMTConfig
-  module Redmine
-    BaseUrl = "https://projects.puppetlabs.com/"
-    Username = "user@puppetlabs.com"
-    Password = "password"
-    # Redmine project ID can be found from, e.g., http://projects.puppetlabs.com/projects.xml
-    ProjectId = 82
+RMTConfig.define("sample") do
+	from_redmine({
+		:base_url => "https://projects.puppetlabs.com/",
+		:username => "user@puppetlabs.com",
+		:password => "password",
+		# Redmine project ID can be found from, e.g., http://projects.puppetlabs.com/projects.xml
+		:project_id => 82
+	})
 
-    # A hash that maps Redmine "tracker" names to Trello Label colors.
-    # examples of Redmine tracker names can be found from,
-    #   e.g. https://projects.puppetlabs.com/issues.xml?project_id=82
-    # legal Trello color values are [green yellow orange red purple blue]
-    TrackerToTrelloLabelColorMap = {
-        "Feature" => "green",
-        "Bug" => "red",
-        "Refactor" => "blue",
-    }
-  end
+	to_trello({
+		# the Trello App Key (can be retrieved from https://trello.com/1/appKey/generate)
+		:app_key => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		# the Trello "secret" (can be retrieved from https://trello.com/1/appKey/generate)
+		:secret => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 
-  module Trello
-    # the Trello App Key (can be retrieved from https://trello.com/1/appKey/generate)
-    AppKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    # the Trello "secret" (can be retrieved from https://trello.com/1/appKey/generate)
-    Secret = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+		# the Trello user token (can be generated with various expiration dates and
+		#   permissions via instructions at https://trello.com/docs/gettingstarted/index.html#getting-a-token-from-a-user)
+		:user_token => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 
-    # the Trello user token (can be generated with various expiration dates and
-    #   permissions via instructions at https://trello.com/docs/gettingstarted/index.html#getting-a-token-from-a-user)
-    UserToken = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+		# the Trello list ID where the cards should be created.  To find this value, navigate to
+		#  the Trello board that you are interested in in your browser and copy the board id from
+		#  the URL.  Then run the "show_lists_for_board.rb" command line tool against that board id,
+		#  and you'll see a list of available List Ids for that board.
+		:target_list_id => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 
-    # the Trello list ID where the cards should be created.  To find this value, navigate to
-    #  the Trello board that you are interested in in your browser and copy the board id from
-    #  the URL.  Then run the "show_lists_for_board.rb" command line tool against that board id,
-    #  and you'll see a list of available List Ids for that board.
-    TargetListId = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  end
+		# A hash that maps Redmine "tracker" names to Trello Label colors.
+		# examples of Redmine tracker names can be found from,
+		#   e.g. https://projects.puppetlabs.com/issues.xml?project_id=82
+		# legal Trello color values are [green yellow orange red purple blue]
+		:color_map => {
+				"Feature" => "green",
+				"Bug" => "red",
+				"Refactor" => "blue",
+		}
+	})
 end

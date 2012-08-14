@@ -3,6 +3,7 @@
 $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "config")
 $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "lib")
 
+require 'rmt_config'
 require 'redmine_trello_conf'
 require 'redmine_client'
 require 'trello_utils'
@@ -24,18 +25,20 @@ class RedmineToTrello
 
   def initialize()
     @state_dir = File.join(File.absolute_path(File.dirname(__FILE__)), "..", "state")
-    @last_run_file = File.join(@state_dir, "last_run.txt")
-
     unless (File.directory?(@state_dir))
       Dir.mkdir(@state_dir)
     end
   end
 
-  def add_issue_to_trello(issue)
+	def last_run_file(mapping)
+    File.join(@state_dir, "last_run_#{mapping.name}.txt")
+	end
+
+  def add_issue_to_trello(issue, trello_config)
     card = Trello::Card.create(:name => "(#{issue[:id]}) #{issue[:subject]}",
-                        :list_id => RMTConfig::Trello::TargetListId,
-                        :description => sanitize_utf8(issue[:description]))
-    color = RMTConfig::Redmine::TrackerToTrelloLabelColorMap[issue[:tracker]]
+                        :list_id => trello_config.target_list_id,
+                        :description => sanitize_utf8(issue[:description] || ""))
+    color = trello_config.color_map[issue[:tracker]]
     if color
       card.add_label(color)
     end
@@ -45,10 +48,10 @@ class RedmineToTrello
 	  str.each_char.map { |c| c.valid_encoding? ? c : "\ufffd"}.join
 	end
 
-  def get_last_run_info()
+  def get_last_run_info(mapping)
 
     begin
-      return File.open(@last_run_file, "r") do |file|
+      return File.open(last_run_file(mapping), "r") do |file|
         last_run_date = file.readline().strip()
         last_ticket_id = Integer(file.readline().strip())
         [last_run_date, last_ticket_id]
@@ -60,48 +63,50 @@ class RedmineToTrello
     end
   end
 
-  def save_last_run_info(max_ticket_id)
-    File.open(@last_run_file, "w") do |file|
+  def save_last_run_info(max_ticket_id, mapping)
+    File.open(last_run_file(mapping), "w") do |file|
       file.puts(Time.new().strftime(DateFormat))
       file.puts(max_ticket_id)
     end
   end
 
-  def main()
-    puts "Beginning run (#{Time.new})"
+  def main(mappings)
+		mappings.each do |mapping|
+			puts "Beginning run (#{Time.new})"
 
-    redmine_client = RedmineClient.new(RMTConfig::Redmine::BaseUrl,
-                                       RMTConfig::Redmine::Username,
-                                       RMTConfig::Redmine::Password)
+			redmine_client = RedmineClient.new(mapping.redmine.base_url,
+																				 mapping.redmine.username,
+																				 mapping.redmine.password)
 
-    last_run_date, last_ticket_id = get_last_run_info()
-    new_max_ticket_id = last_ticket_id
+			last_run_date, last_ticket_id = get_last_run_info(mapping)
+			new_max_ticket_id = last_ticket_id
 
-    issues = redmine_client.get_issues_for_project(RMTConfig::Redmine::ProjectId,
-                                                   :created_date_range => [last_run_date, nil])
+			issues = redmine_client.get_issues_for_project(mapping.redmine.project_id,
+																										 :created_date_range => [last_run_date, nil])
 
-    TrelloUtils.initialize_auth(RMTConfig::Trello::AppKey,
-                                RMTConfig::Trello::Secret,
-                                RMTConfig::Trello::UserToken)
+			TrelloUtils.initialize_auth(mapping.trello.app_key,
+																	mapping.trello.secret,
+																	mapping.trello.user_token)
 
-    issues.each do |issue|
-      issue_id = Integer(issue[:id])
-      if issue_id > last_ticket_id
-        puts "Adding issue: #{issue_id}: #{issue[:subject]}"
-        add_issue_to_trello(issue)
-        if (issue_id > new_max_ticket_id)
-          new_max_ticket_id = issue_id
-        end
-      else
-        puts "Skipping issue #{issue_id} because it has already been added."
-      end
-    end
+			issues.each do |issue|
+				issue_id = Integer(issue[:id])
+				if issue_id > last_ticket_id
+					puts "Adding issue: #{issue_id}: #{issue[:subject]}"
+					add_issue_to_trello(issue, mapping.trello)
+					if (issue_id > new_max_ticket_id)
+						new_max_ticket_id = issue_id
+					end
+				else
+					puts "Skipping issue #{issue_id} because it has already been added."
+				end
+			end
 
-    save_last_run_info(new_max_ticket_id)
+			save_last_run_info(new_max_ticket_id, mapping)
 
-    puts ""
+			puts ""
+		end
   end
 end
 
-RedmineToTrello.new().main()
+RedmineToTrello.new().main(RMTConfig.mappings)
 
