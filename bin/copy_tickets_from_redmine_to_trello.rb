@@ -6,7 +6,7 @@ $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "lib")
 require 'rmt/config'
 require 'redmine_trello_conf'
 require 'redmine_client'
-require 'trello_utils'
+require 'rmt/trello'
 
 #
 # This is a command-line program that will read the redmine_trello_conf.rb config file,
@@ -34,22 +34,14 @@ class RedmineToTrello
     File.join(@state_dir, "last_run_#{mapping.name}.txt")
 	end
 
-  def add_issue_to_trello(issue, trello_config)
-    card = Trello::Card.create(:name => "(#{issue[:id]}) #{issue[:subject]}",
-                        :list_id => trello_config.target_list_id,
-                        :description => sanitize_utf8(issue[:description] || ""))
-    color = trello_config.color_map[issue[:tracker]]
-    if color
-      card.add_label(color)
-    end
+  def add_issue_to(trello, issue, trello_config)
+    trello.create_card(:name => "(#{issue[:id]}) #{issue[:subject]}",
+                       :list => trello_config.target_list_id,
+                       :description => issue[:description],
+                       :color => trello_config.color_map[issue[:tracker]])
   end
 
-	def sanitize_utf8(str)
-	  str.each_char.map { |c| c.valid_encoding? ? c : "\ufffd"}.join
-	end
-
   def get_last_run_info(mapping)
-
     begin
       return File.open(last_run_file(mapping), "r") do |file|
         last_run_date = file.readline().strip()
@@ -84,9 +76,9 @@ class RedmineToTrello
 			issues = redmine_client.get_issues_for_project(mapping.redmine.project_id,
 																										 :created_date_range => [last_run_date, nil])
 
-			TrelloUtils.initialize_auth(mapping.trello.app_key,
-																	mapping.trello.secret,
-																	mapping.trello.user_token)
+			trello = RMT::Trello.new(mapping.trello.app_key,
+											         mapping.trello.secret,
+															 mapping.trello.user_token)
 
 			issues.each do |issue|
 				issue_id = Integer(issue[:id])

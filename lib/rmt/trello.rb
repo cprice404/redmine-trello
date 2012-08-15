@@ -35,5 +35,21 @@ module RMT
     def sanitize_utf8(str)
       str.each_char.map { |c| c.valid_encoding? ? c : "\ufffd"}.join
     end
+
+    def create_card(properties)
+      card = Trello::Card.create(:name => properties[:name],
+                                 :list_id => properties[:list],
+                                 :description => sanitize_utf8(properties[:description] || ""))
+      if properties[:color]
+        card.add_label(color)
+      end
+    end
+
+  private
+
+    def sanitize_utf8(str)
+      str.each_char.map { |c| c.valid_encoding? ? c : "\ufffd"}.join
+    end
+
   end
 end
