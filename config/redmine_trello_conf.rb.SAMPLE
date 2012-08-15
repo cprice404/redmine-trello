@@ -1,4 +1,4 @@
-RMTConfig.define("sample") do
+RMT::Config.define("sample") do
 	from_redmine({
 		:base_url => "https://projects.puppetlabs.com/",
 		:username => "user@puppetlabs.com",

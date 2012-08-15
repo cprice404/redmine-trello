@@ -3,7 +3,7 @@
 $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "config")
 $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "lib")
 
-require 'rmt_config'
+require 'rmt/config'
 require 'redmine_trello_conf'
 require 'redmine_client'
 require 'trello_utils'
@@ -108,5 +108,5 @@ class RedmineToTrello
   end
 end
 
-RedmineToTrello.new().main(RMTConfig.mappings)
+RedmineToTrello.new().main(RMT::Config.mappings)
 
