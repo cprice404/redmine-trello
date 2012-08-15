@@ -66,9 +66,9 @@ class RedmineToTrello
 		mappings.each do |mapping|
 			puts "Beginning run (#{Time.new})"
 
-			redmine_client = RedmineClient.new(mapping.redmine.base_url,
-																				 mapping.redmine.username,
-																				 mapping.redmine.password)
+			redmine_client = RMT::Redmine.new(mapping.redmine.base_url,
+																			  mapping.redmine.username,
+																			  mapping.redmine.password)
 
 			last_run_date, last_ticket_id = get_last_run_info(mapping)
 			new_max_ticket_id = last_ticket_id

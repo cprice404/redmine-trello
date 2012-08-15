@@ -7,7 +7,8 @@ require 'ox'
 # However, I kept getting xml type conversion errors with all of them
 # and eventually got sick of battling with them, when what we needed
 # to accomplish is really easy to just write from scratch.
-class RedmineClient
+module RMT
+class Redmine
   # Instantiate a redmine client
   #
   # @param [String] base_url the base url (e.g., "https://projects.puppetlabs.com") of the redmine project site to read issues from
@@ -55,7 +56,7 @@ class RedmineClient
     response = @conn.get(uri)
     return parse_issues(response.body)
   end
-  
+
   ###########################################################################
   # Private utility methods
   ###########################################################################
@@ -104,4 +105,5 @@ class RedmineClient
     node.locate(child_node_name)[0][attr_name]
   end
   private :get_attribute_of_child_node
+end
 end
