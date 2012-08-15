@@ -19,9 +19,9 @@ unless board_id = ARGV[0]
 end
 
 RMT::Config.mappings.each do |mapping|
-	trello = RMT::TrelloUtils.new(mapping.trello.app_key,
-                                mapping.trello.secret,
-                                mapping.trello.user_token)
+	trello = RMT::Trello.new(mapping.trello.app_key,
+                           mapping.trello.secret,
+                           mapping.trello.user_token)
 
 	begin
 		lists = trello.lists_on_board(board_id)
