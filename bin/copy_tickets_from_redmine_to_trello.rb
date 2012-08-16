@@ -16,46 +16,13 @@ $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "lib")
 require 'rmt/config'
 require 'redmine_trello_conf'
 require 'rmt/redmine'
-require 'rmt/trello'
+require 'rmt/synchronize'
 require 'rmt/synchronization_data'
 
 
-class Synchronize
-  def initialize
-    @trello_list_data = {}
-  end
-
-  def synchronize(data, to_trello)
-    list_data = (@trello_list_data[to_trello] ||= [])
-    list_data.concat(data)
-    self
-  end
-
-  def finish
-    @trello_list_data.each do |list, data|
-      trello = RMT::Trello.new(list.app_key,
-                               list.secret,
-                               list.user_token)
-
-      existing_cards = trello.list_cards_in(list.target_list_id)
-
-      existing_cards.
-        reject { |card| data.any? { |data| data.is_data_for? card } }.
-        each do |card|
-          puts "Removing card: #{card.name}"
-          trello.archive_card(card)
-        end
-
-      data.
-        reject { |data| existing_cards.any? { |card| data.is_data_for? card } }.
-        each { |data| data.insert_into(trello) }
-    end
-  end
-end
-
 RMT::Config.
   mappings.
-  inject(Synchronize.new) do |sync, mapping|
+  inject(RMT::Synchronize.new) do |sync, mapping|
     redmine_client = RMT::Redmine.new(mapping.redmine.base_url,
                                       mapping.redmine.username,
                                       mapping.redmine.password)
