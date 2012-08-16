@@ -22,6 +22,10 @@ module RMT
       card.name.include? "(#{@id})"
     end
 
+    def exists_on?(trello)
+      trello.list_cards_in(@target_list_id).any? &method(:is_data_for?)
+    end
+
     def self.from_redmine(list_config)
       proc { |ticket| SynchronizationData.new(ticket[:id], ticket[:subject], ticket[:description], list_config.target_list_id, list_config.color_map[ticket[:tracker]]) }
     end

@@ -11,10 +11,11 @@ module RMT
     # @param [String] the Trello user token (can be generated with various expiration dates and
     #   permissions via instructions at https://trello.com/docs/gettingstarted/index.html#getting-a-token-from-a-user)
     def initialize(app_key, secret, user_token)
-
       ::Trello::Authorization.const_set :AuthPolicy, OAuthPolicy
       OAuthPolicy.consumer_credential = OAuthCredential.new(app_key, secret)
       OAuthPolicy.token = OAuthCredential.new(user_token)
+
+      @cards = {}
     end
 
     def lists_on_board(board_id)
@@ -36,7 +37,10 @@ module RMT
     end
 
     def list_cards_in(list_id)
-      ::Trello::List.find(list_id).cards
+      if not @cards[list_id]
+        @cards[list_id] = ::Trello::List.find(list_id).cards
+      end
+      @cards[list_id]
     end
 
   private

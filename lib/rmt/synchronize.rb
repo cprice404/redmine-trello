@@ -18,18 +18,16 @@ module RMT
                                  list.secret,
                                  list.user_token)
 
-        existing_cards = trello.list_cards_in(list.target_list_id)
+        data.
+          reject { |data| data.exists_on?(trello) }.
+          each { |data| data.insert_into(trello) }
 
-        existing_cards.
+        trello.list_cards_in(list.target_list_id).
           reject { |card| data.any? { |data| data.is_data_for? card } }.
           each do |card|
             puts "Removing card: #{card.name}"
             trello.archive_card(card)
           end
-
-        data.
-          reject { |data| existing_cards.any? { |card| data.is_data_for? card } }.
-          each { |data| data.insert_into(trello) }
       end
     end
   end
