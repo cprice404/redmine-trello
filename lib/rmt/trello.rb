@@ -32,6 +32,7 @@ module RMT
     end
 
     def archive_card(card)
+      puts "Removing card: #{card.name}"
       card.closed = true
       card.update!
     end

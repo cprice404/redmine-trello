@@ -22,6 +22,12 @@ module RMT
       card.name.include? "(#{@id})"
     end
 
+    def ensure_present_on(trello)
+      if not exists_on?(trello)
+        insert_into(trello)
+      end
+    end
+
     def exists_on?(trello)
       trello.list_cards_in(@target_list_id).any? &method(:is_data_for?)
     end

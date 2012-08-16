@@ -18,16 +18,16 @@ module RMT
                                  list.secret,
                                  list.user_token)
 
-        data.
-          reject { |data| data.exists_on?(trello) }.
-          each { |data| data.insert_into(trello) }
+        data.each { |data| data.ensure_present_on(trello) }
+        trello.list_cards_in(list.target_list_id).each { |card| ensure_needed(trello, card, data) }
+      end
+    end
 
-        trello.list_cards_in(list.target_list_id).
-          reject { |card| data.any? { |data| data.is_data_for? card } }.
-          each do |card|
-            puts "Removing card: #{card.name}"
-            trello.archive_card(card)
-          end
+  private
+
+    def ensure_needed(trello, card, data)
+      if not data.any? { |data| data.is_data_for? card }
+        trello.archive_card card
       end
     end
   end
