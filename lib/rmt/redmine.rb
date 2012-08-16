@@ -61,40 +61,38 @@ class Redmine
       uri << "&status_id=#{options[:status]}"
     end
     response = @conn.get(uri)
-    return parse_issues(response.body)
+    return parse_issues(response.body).find_all &not_in_subproject_of(project_id)
   end
 
   ###########################################################################
   # Private utility methods
   ###########################################################################
+  
+  def not_in_subproject_of(project_id)
+    proc { |issue| issue[:project_id] == project_id }
+  end
 
   # parse the http response body (xml) and return a list of issues
   def parse_issues(response_body)
-    doc = Ox.parse(response_body)
-    issues = []
-    doc.root.nodes.each do |issue_node|
-      #require 'pp'
-      #pp issue_node
-      issue = {}
-      issue[:id] = get_value_of_text_child_node(issue_node, "id")
-      issue[:subject] = get_value_of_text_child_node(issue_node, "subject")
-      issue[:description] = get_value_of_text_child_node(issue_node, "description")
-      issue[:start_date] = get_value_of_text_child_node(issue_node, "start_date")
-      issue[:due_date] = get_value_of_text_child_node(issue_node, "due_date")
-      issue[:done_ratio] = get_value_of_text_child_node(issue_node, "done_ratio")
-      issue[:estimated_hours] = get_value_of_text_child_node(issue_node, "estimated_hours")
-      issue[:description] = get_value_of_text_child_node(issue_node, "description")
-      issue[:created_on] = get_value_of_text_child_node(issue_node, "created_on")
-      issue[:updated_on] = get_value_of_text_child_node(issue_node, "updated_on")
-
-      issue[:tracker] = get_attribute_of_child_node(issue_node, "tracker", :name)
-      issue[:status] = get_attribute_of_child_node(issue_node, "status", :name)
-      issue[:priority] = get_attribute_of_child_node(issue_node, "priority", :name)
-      issue[:author] = get_attribute_of_child_node(issue_node, "author", :name)
-
-      issues << issue
+    Ox.parse(response_body).root.nodes.collect do |issue_node|
+      {
+        :id => get_value_of_text_child_node(issue_node, "id"),
+        :subject => get_value_of_text_child_node(issue_node, "subject"),
+        :description => get_value_of_text_child_node(issue_node, "description"),
+        :start_date => get_value_of_text_child_node(issue_node, "start_date"),
+        :due_date => get_value_of_text_child_node(issue_node, "due_date"),
+        :done_ratio => get_value_of_text_child_node(issue_node, "done_ratio"),
+        :estimated_hours => get_value_of_text_child_node(issue_node, "estimated_hours"),
+        :description => get_value_of_text_child_node(issue_node, "description"),
+        :created_on => get_value_of_text_child_node(issue_node, "created_on"),
+        :updated_on => get_value_of_text_child_node(issue_node, "updated_on"),
+        :tracker => get_attribute_of_child_node(issue_node, "tracker", :name),
+        :status => get_attribute_of_child_node(issue_node, "status", :name),
+        :priority => get_attribute_of_child_node(issue_node, "priority", :name),
+        :author => get_attribute_of_child_node(issue_node, "author", :name),
+        :project_id => get_attribute_of_child_node(issue_node, "project", :id).to_i
+      }
     end
-    issues
   end
   private :parse_issues
 
