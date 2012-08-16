@@ -18,52 +18,64 @@ require 'redmine_trello_conf'
 require 'rmt/redmine'
 require 'rmt/trello'
 
-def card_for(issue)
-  id = issue[:id]
-  proc { |card| card.name =~ /\(#{id}\)/ }
-end
+class SynchronizationData
+  def initialize(id, name, description, target_list_id, color)
+    @id = id
+    @name = name
+    @description = description
+    @target_list_id = target_list_id
+    @color = color
+  end
 
-def issue_for(card)
-  if card.name =~ /\((\d+)\)/
-    id = $1
-    proc { |issue| issue[:id] =~ /#{id}/ }
-  else
-    raise "Unable to parse card name for ticket id: #{card.name}"
+  def insert_into(trello)
+    puts "Adding issue: #{@id}: #{@name}"
+    trello.create_card(:name => "(#{@id}) #{@name}",
+                       :list => @target_list_id,
+                       :description => @description,
+                       :color => @color)
+  end
+
+  def find_in(cards)
+    cards.find &method(:is_data_for?)
+  end
+
+  def is_data_for?(card)
+    card.name =~ /\(#{@id}\)/
+  end
+
+  def self.from_redmine(list_config)
+    proc { |ticket| SynchronizationData.new(ticket[:id], ticket[:subject], ticket[:description], list_config.target_list_id, list_config.color_map[ticket[:tracker]]) }
   end
 end
 
 mappings = RMT::Config.mappings
 
-trello_list_issues = mappings.inject({}) do |issue_buckets, mapping|
+trello_list_data = mappings.inject({}) do |issue_buckets, mapping|
   issues = (issue_buckets[mapping.trello] ||= [])
   redmine_client = RMT::Redmine.new(mapping.redmine.base_url,
                                     mapping.redmine.username,
                                     mapping.redmine.password)
-  issues.concat(redmine_client.get_issues_for_project(mapping.redmine.project_id, :status => RMT::Redmine::Status::Unreviewed))
+
+  redmine_issues = redmine_client.get_issues_for_project(mapping.redmine.project_id, :status => RMT::Redmine::Status::Unreviewed)
+  issues.concat(redmine_issues.collect &SynchronizationData.from_redmine(mapping.trello))
   issue_buckets
 end
 
-trello_list_issues.each do |list, issues|
+trello_list_data.each do |list, data|
   trello = RMT::Trello.new(list.app_key,
                            list.secret,
                            list.user_token)
 
   existing_cards = trello.list_cards_in(list.target_list_id)
 
-  existing_cards.reject do |card|
-    issues.any? &issue_for(card)
-  end.each do |card|
-    puts "Removing card: #{card.name}"
-    trello.archive_card(card)
-  end
+  existing_cards.
+    reject { |card| data.any? { |data| data.is_data_for? card } }.
+    each do |card|
+      puts "Removing card: #{card.name}"
+      trello.archive_card(card)
+    end
 
-  issues.reject do |issue|
-    existing_cards.any? &card_for(issue)
-  end.each do |issue|
-      puts "Adding issue: #{issue[:id]}: #{issue[:subject]}"
-      trello.create_card(:name => "(#{issue[:id]}) #{issue[:subject]}",
-                         :list => list.target_list_id,
-                         :description => issue[:description],
-                         :color => list.color_map[issue[:tracker]])
-  end
+  data.
+    reject { |data| existing_cards.any? { |card| data.is_data_for? card } }.
+    each { |data| data.insert_into(trello) }
 end
