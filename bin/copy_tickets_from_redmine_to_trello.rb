@@ -15,21 +15,13 @@ $LOAD_PATH << File.join(File.absolute_path(File.dirname(__FILE__)), "..", "lib")
 
 require 'rmt/config'
 require 'redmine_trello_conf'
-require 'rmt/redmine'
+require 'rmt/redmine_source'
 require 'rmt/synchronize'
-require 'rmt/synchronization_data'
-
 
 RMT::Config.
   mappings.
   inject(RMT::Synchronize.new) do |sync, mapping|
-    redmine_client = RMT::Redmine.new(mapping.redmine.base_url,
-                                      mapping.redmine.username,
-                                      mapping.redmine.password)
-
-    redmine_issues = redmine_client.get_issues_for_project(mapping.redmine.project_id, :status => RMT::Redmine::Status::Unreviewed)
-
-    sync.synchronize(redmine_issues.collect(&RMT::SynchronizationData.from_redmine(mapping.trello)),
-                     mapping.trello)
+    redmine = RMT::RedmineSource.new(mapping.redmine)
+    sync.synchronize(redmine.data_for(mapping.trello), mapping.trello)
   end.
   finish
