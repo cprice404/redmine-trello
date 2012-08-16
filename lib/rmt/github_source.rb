@@ -11,7 +11,7 @@ module RMT
     def data_for(trello)
       pull_requests = @github.pull_requests.all(@config.user, @config.repo, :per_page => 100)
       pull_requests.collect do |pr|
-        RMT::SynchronizationData.new("PR #{pr.number}", pr.title, pr.body, trello.target_list_id, "blue")
+        RMT::SynchronizationData.new("PR #{@config.repo}/#{pr.number}", pr.title, pr.body, trello.target_list_id, "blue")
       end
     end
   end
