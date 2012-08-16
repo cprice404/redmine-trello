@@ -26,8 +26,17 @@ module RMT
                                    :list_id => properties[:list],
                                    :description => sanitize_utf8(properties[:description] || ""))
       if properties[:color]
-        card.add_label(color)
+        card.add_label(properties[:color])
       end
+    end
+
+    def archive_card(card)
+      card.closed = true
+      card.update!
+    end
+
+    def list_cards_in(list_id)
+      ::Trello::List.find(list_id).cards
     end
 
   private

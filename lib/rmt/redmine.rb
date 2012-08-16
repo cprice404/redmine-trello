@@ -9,6 +9,10 @@ require 'ox'
 # to accomplish is really easy to just write from scratch.
 module RMT
 class Redmine
+  module Status
+    Unreviewed = 10
+  end
+
   # Instantiate a redmine client
   #
   # @param [String] base_url the base url (e.g., "https://projects.puppetlabs.com") of the redmine project site to read issues from
@@ -49,9 +53,12 @@ class Redmine
   #    * :priority
   #    * :author
   def get_issues_for_project(project_id, options = {})
-    uri = "#{@base_url}/issues.xml?project_id=#{project_id}"
+    uri = "#{@base_url}/issues.xml?project_id=#{project_id}&limit=1000"
     if (options.has_key?(:created_date_range))
       uri << "&created_on=><#{options[:created_date_range][0]}|#{options[:created_date_range][1]}"
+    end
+    if options.has_key?(:status)
+      uri << "&status_id=#{options[:status]}"
     end
     response = @conn.get(uri)
     return parse_issues(response.body)

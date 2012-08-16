@@ -48,6 +48,14 @@ module RMT
         @target_list_id = definition[:target_list_id]
         @color_map = definition[:color_map]
       end
+
+      def eql?(other)
+        @target_list_id.eql?(other.target_list_id)
+      end
+
+      def hash
+        @target_list_id.hash
+      end
     end
   end
 end
