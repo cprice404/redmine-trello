@@ -17,36 +17,7 @@ require 'rmt/config'
 require 'redmine_trello_conf'
 require 'rmt/redmine'
 require 'rmt/trello'
-
-class SynchronizationData
-  def initialize(id, name, description, target_list_id, color)
-    @id = id
-    @name = name
-    @description = description
-    @target_list_id = target_list_id
-    @color = color
-  end
-
-  def insert_into(trello)
-    puts "Adding issue: #{@id}: #{@name}"
-    trello.create_card(:name => "(#{@id}) #{@name}",
-                       :list => @target_list_id,
-                       :description => @description,
-                       :color => @color)
-  end
-
-  def find_in(cards)
-    cards.find &method(:is_data_for?)
-  end
-
-  def is_data_for?(card)
-    card.name =~ /\(#{@id}\)/
-  end
-
-  def self.from_redmine(list_config)
-    proc { |ticket| SynchronizationData.new(ticket[:id], ticket[:subject], ticket[:description], list_config.target_list_id, list_config.color_map[ticket[:tracker]]) }
-  end
-end
+require 'rmt/synchronization_data'
 
 mappings = RMT::Config.mappings
 
@@ -57,7 +28,7 @@ trello_list_data = mappings.inject({}) do |issue_buckets, mapping|
                                     mapping.redmine.password)
 
   redmine_issues = redmine_client.get_issues_for_project(mapping.redmine.project_id, :status => RMT::Redmine::Status::Unreviewed)
-  issues.concat(redmine_issues.collect &SynchronizationData.from_redmine(mapping.trello))
+  issues.concat(redmine_issues.collect &RMT::SynchronizationData.from_redmine(mapping.trello))
   issue_buckets
 end
 
