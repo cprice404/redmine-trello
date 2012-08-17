@@ -9,37 +9,27 @@ describe RMT::SynchronizationData do
 
   Card = Struct.new(:name)
 
-  it "determines if it is the data for a card with a matching id" do
-    card = Card.new("(id) some name")
+  it "does not add a card if one is already present" do
+    trello = MiniTest::Mock.new
+    card_finder = MiniTest::Mock.new
+    card_finder.expect(:call, [Card.new("(id) some name")], [trello])
 
-    data = RMT::SynchronizationData.new("id", "name", "description", "list", "color")
+    data = RMT::SynchronizationData.new("id", "name", "description", "list", "color", card_finder)
+    data.ensure_present_on(trello)
 
-    assert_that data.is_data_for?(card), is(true)
+    card_finder.verify
   end
 
-  it "does not match a card with a different id" do
-    card = Card.new("(other id) some name")
+  it "adds a new card if one is not present" do
+    trello = MiniTest::Mock.new
+    trello.expect(:create_card, nil, [{ :name => "(id) name", :list => "list", :description => "description", :color => "color" }])
 
-    data = RMT::SynchronizationData.new("id", "name", "description", "list", "color")
+    card_finder = MiniTest::Mock.new
+    card_finder.expect(:call, [Card.new("(different id) some name")], [trello])
 
-    assert_that data.is_data_for?(card), is(false)
-  end
+    data = RMT::SynchronizationData.new("id", "name", "description", "list", "color", card_finder)
+    data.ensure_present_on(trello)
 
-  it "can create itself from a Redmine issue" do
-    issue = {
-      :id => 1,
-      :subject => "a small subject",
-      :description => "a longer description",
-      :tracker => "bugger"
-    }
-    list_config = Struct.new(:target_list_id, :color_map).new(23, { "bugger" => "blue" })
-
-    data = RMT::SynchronizationData.from_redmine(list_config).call(issue)
-
-    assert_that data, has_attribute(:id, is(1))
-    assert_that data, has_attribute(:name, is("a small subject"))
-    assert_that data, has_attribute(:description, is("a longer description"))
-    assert_that data, has_attribute(:target_list_id, is(23))
-    assert_that data, has_attribute(:color, is("blue"))
+    trello.verify
   end
 end
