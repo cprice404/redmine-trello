@@ -1,16 +1,19 @@
+require 'rmt/redmine_source'
+require 'rmt/github_source'
+
 module RMT
   class Config
     @mappings = []
 
     def self.define(name, &definition)
-      @mappings << RedmineToTrelloMapping.new(name, definition)
+      @mappings << DataToTrelloMapping.new(name, definition)
     end
 
     def self.mappings
       @mappings
     end
 
-    class RedmineToTrelloMapping
+    class DataToTrelloMapping
       attr_reader :redmine, :trello, :name
 
       def initialize(name, definition)
@@ -19,11 +22,29 @@ module RMT
       end
 
       def from_redmine(config)
+        raise "Cannot define two sources at once!" if @github
         @redmine = RedmineConfig.new(config)
+      end
+
+      def from_github(config)
+        raise "Cannot define two sources at once!" if @redmine
+        @github = GithubConfig.new(config)
       end
 
       def to_trello(config)
         @trello = TrelloConfig.new(config)
+      end
+
+      def source
+        if @redmine
+          return RMT::RedmineSource.new(@redmine)
+        end
+
+        if @github
+          return RMT::GithubSource.new(@github)
+        end
+
+        raise "No sources defined!"
       end
     end
 
@@ -35,6 +56,15 @@ module RMT
         @username = definition[:username]
         @password = definition[:password]
         @project_id = definition[:project_id]
+      end
+    end
+
+    class GithubConfig
+      attr_reader :user, :repo
+
+      def initialize(definition)
+        @user = definition[:user]
+        @repo = definition[:repo]
       end
     end
 
