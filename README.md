@@ -1,7 +1,7 @@
 Redmine-Trello Integration
 ==========================
 
-This project provides extremely simplistic syncronization of
+This project provides extremely simplistic synchronization of
 Redmine tickets to Trello boards.
 
 Recent versions also have the ability to create Trello cards
