@@ -78,12 +78,11 @@ class Redmine
       {
         :id => get_value_of_text_child_node(issue_node, "id"),
         :subject => get_value_of_text_child_node(issue_node, "subject"),
-        :description => get_value_of_text_child_node(issue_node, "description"),
+        :description => get_issue_description(issue_node),
         :start_date => get_value_of_text_child_node(issue_node, "start_date"),
         :due_date => get_value_of_text_child_node(issue_node, "due_date"),
         :done_ratio => get_value_of_text_child_node(issue_node, "done_ratio"),
-        :estimated_hours => get_value_of_text_child_node(issue_node, "estimated_hours"),
-        :description => get_value_of_text_child_node(issue_node, "description"),
+        :estimated_hours => get_value_of_text_child_node(issue_node, "estimated_hours"),        
         :created_on => get_value_of_text_child_node(issue_node, "created_on"),
         :updated_on => get_value_of_text_child_node(issue_node, "updated_on"),
         :tracker => get_attribute_of_child_node(issue_node, "tracker", :name),
@@ -102,6 +101,13 @@ class Redmine
     node.locate(child_node_name)[0].nodes[0]
   end
   private :get_value_of_text_child_node
+
+  def get_issue_description(node)
+    issue_id = get_value_of_text_child_node(node, "id")
+    description = get_value_of_text_child_node(node, "description") || ""
+    "#{description} #{@base_url}/issues/#{issue_id}"
+  end
+  private :get_issue_description
 
   # given an Ox xml node, find a child node by the specified child_node_name.  The specified node
   #  should have an attribute with the name specified by attr_name; this method returns the value
