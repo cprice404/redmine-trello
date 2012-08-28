@@ -102,10 +102,11 @@ class Redmine
   end
   private :get_value_of_text_child_node
 
+  # prepends the isue description with a link to the issue on Redmine
   def get_issue_description(node)
     issue_id = get_value_of_text_child_node(node, "id")
     description = get_value_of_text_child_node(node, "description") || ""
-    "#{description} #{@base_url}/issues/#{issue_id}"
+    "#{@base_url}/issues/#{issue_id} \n\n#{description}"
   end
   private :get_issue_description
 
