@@ -28,7 +28,7 @@ module RMT
       puts "Adding card: #{properties[:name]}"
       card = ::Trello::Card.create(:name => properties[:name],
                                    :list_id => properties[:list],
-                                   :description => sanitize_utf8(properties[:description] || ""))
+                                   :description => sanitize_utf8(properties[:description]))
       if properties[:color]
         card.add_label(properties[:color])
       end
