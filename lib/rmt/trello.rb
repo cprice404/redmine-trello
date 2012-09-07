@@ -12,6 +12,10 @@ module RMT
     #   permissions via instructions at https://trello.com/docs/gettingstarted/index.html#getting-a-token-from-a-user)
     def initialize(app_key, secret, user_token)
       ::Trello::Authorization.const_set :AuthPolicy, OAuthPolicy
+      # This line is a hack to allow multiple different Trello auths to be used
+      # during a single run; the Trello module will cache the consumer otherwise.
+      OAuthPolicy.instance_variable_set(:@consumer, nil)
+
       OAuthPolicy.consumer_credential = OAuthCredential.new(app_key, secret)
       OAuthPolicy.token = OAuthCredential.new(user_token)
 
