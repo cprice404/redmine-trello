@@ -4,7 +4,7 @@ require 'rmt/synchronization_data'
 module RMT
   class GithubSource
     def initialize(github_config)
-      @github = Github.new
+      @github = Github.new(:oauth_token => github_config.oauth_token)
       @config = github_config
     end
 
