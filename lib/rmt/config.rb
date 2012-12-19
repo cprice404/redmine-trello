@@ -60,11 +60,12 @@ module RMT
     end
 
     class GithubConfig
-      attr_reader :user, :repo
+      attr_reader :user, :repo, :oauth_token
 
       def initialize(definition)
         @user = definition[:user]
         @repo = definition[:repo]
+        @oauth_token = definition[:oauth_token]
       end
     end
 
