@@ -8,6 +8,7 @@ module RMT
                                          redmine_config.username,
                                          redmine_config.password)
       @project_id = redmine_config.project_id
+      @check_all_lists = !! redmine_config.check_all_lists
     end
 
     def data_for(trello)
@@ -16,6 +17,12 @@ module RMT
         @project_id,
         :status => RMT::Redmine::Status::Unreviewed
       )
+      relevant_cards_loader =
+        if @check_all_lists
+          proc { |trello| trello.all_cards_on_board_of(target_list) }
+        else
+          proc { |trello| trello.list_cards_in(target_list) }
+        end
       issues.collect do |ticket|
         SynchronizationData.new(
           ticket[:id],
@@ -23,8 +30,10 @@ module RMT
           ticket[:description],
           target_list,
           trello.color_map[ticket[:tracker]],
-          proc { |trello| trello.all_cards_on_board_of(target_list) })
+          relevant_cards_loader
+        )
       end
     end
   end
 end
+

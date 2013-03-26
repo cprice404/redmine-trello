@@ -3,6 +3,10 @@ RMT::Config.define("sample") do
 		:base_url => "https://projects.puppetlabs.com/",
 		:username => "user@puppetlabs.com",
 		:password => "password",
+		# Where should we check for existing tickets?
+		# if true - on the whole board,
+		# if false - just check on the target list.
+		:check_all_lists => false,
 		# Redmine project ID can be found from, e.g., http://projects.puppetlabs.com/projects.xml
 		:project_id => 82
 	})
