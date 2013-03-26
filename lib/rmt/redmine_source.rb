@@ -12,13 +12,19 @@ module RMT
 
     def data_for(trello)
       target_list = trello.target_list_id
-      issues = @redmine_client.get_issues_for_project(@project_id, :status => RMT::Redmine::Status::Unreviewed)
-      issues.collect { |ticket| SynchronizationData.new(ticket[:id],
-                                                        ticket[:subject],
-                                                        ticket[:description],
-                                                        target_list,
-                                                        trello.color_map[ticket[:tracker]],
-                                                        proc { |trello| trello.list_cards_in(target_list) }) }
+      issues = @redmine_client.get_issues_for_project(
+        @project_id,
+        :status => RMT::Redmine::Status::Unreviewed
+      )
+      issues.collect do |ticket|
+        SynchronizationData.new(
+          ticket[:id],
+          ticket[:subject],
+          ticket[:description],
+          target_list,
+          trello.color_map[ticket[:tracker]],
+          proc { |trello| trello.list_cards_in(target_list) })
+      end
     end
   end
 end
