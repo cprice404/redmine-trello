@@ -23,7 +23,7 @@ module RMT
           ticket[:description],
           target_list,
           trello.color_map[ticket[:tracker]],
-          proc { |trello| trello.list_cards_in(target_list) })
+          proc { |trello| trello.all_cards_on_board_of(target_list) })
       end
     end
   end
