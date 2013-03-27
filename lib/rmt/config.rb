@@ -49,13 +49,14 @@ module RMT
     end
 
     class RedmineConfig
-      attr_reader :base_url, :username, :password, :project_id
+      attr_reader :base_url, :username, :password, :project_id, :check_all_lists
 
       def initialize(definition)
         @base_url = definition[:base_url]
         @username = definition[:username]
         @password = definition[:password]
         @project_id = definition[:project_id]
+        @check_all_lists = definition[:check_all_lists]
       end
     end
 
